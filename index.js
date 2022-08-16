@@ -243,3 +243,139 @@ function addRole()
         
     });
 };
+
+//Select roles
+function selectEmpRole()
+{
+    const rolename = [];
+    con.query("select * from role;",
+        function(err, results) {
+            if (err) throw err;
+            for(let i=0;i<results.length;i++)
+            {
+                rolename.push(results[i].title);
+            }
+            
+        })
+    return rolename;
+};
+
+//Select manager
+function selectManager()
+{
+    const managername = ['none'];
+    con.query("select * from employee;",
+        function(err, results) {
+            if (err) throw err;
+            for(let i=0;i<results.length;i++)
+            {
+                let empname = results[i].first_name+' '+results[i].last_name;
+                managername.push(empname);
+            }
+            
+        })
+    return managername;
+};
+
+
+//Add new employee
+function addEmployee()
+{
+    inquirer.prompt([
+        {
+            type :"input",
+            message :"Please enter first name: ",
+            name : "firstname",
+            validate: firstInput => {
+                if (firstInput) {
+                  return true;
+                } else {
+                  console.log('Please enter first name!');
+                  return false;
+                }
+              }
+        },
+        {
+            type :"input",
+            message :"Please enter last name: ",
+            name : "lastname",
+            validate: lastInput => {
+                if (lastInput) {
+                  return true;
+                } else {
+                  console.log('Please enter last name!');
+                  return false;
+                }
+              }
+        },
+        {
+            type : "list",
+            message: "Please select employee role: ",
+            name :"emprole",
+            choices: selectEmpRole()
+        },
+        {
+            type : "list",
+            message : "Please select employee manager: ",
+            name : "empmanager",
+            choices : selectManager()
+        }
+
+        ]).then(function(res){
+            var roleid;
+            var mgrid;
+            var sq = "select id from role where title = " + mysql.escape(res.emprole); 
+            con.query(sq, function (err, result) {
+                if (err) throw err;
+                roleid = result[0].id;
+               // console.log(roleid);
+               
+                if(res.empmanager !=='none')
+                {
+                    var sqmg = "select id from employee where CONCAT(first_name,' ',last_name) = " + mysql.escape(res.empmanager); 
+                        con.query(sqmg, function (err, result) {
+                            if (err) throw err;
+                            mgrid = result[0].id;
+                           // console.log(mgrid);
+                            con.query("INSERT INTO employee SET ?",
+                            {
+                                first_name :res.firstname,
+                                last_name :res.lastname,
+                                role_id:roleid,
+                                manager_id : mgrid
+                            },
+                            function (err, result) {
+                                if (err) throw err;
+                                console.log("");
+                                console.log("----------------------------------------------------");
+                                console.log(chalk.yellow("     Number of records inserted: ")+ result.affectedRows);
+                                console.log("----------------------------------------------------");
+                                console.log("");
+                                empprompt();
+                            });
+                        });
+                }
+                else
+                {   mgrid = null;
+                    con.query("INSERT INTO employee SET ?",
+                    {
+                        first_name :res.firstname,
+                        last_name :res.lastname,
+                        role_id :roleid,
+                        manager_id : mgrid
+                    },
+                    function (err, result) {
+                        if (err) throw err;
+                        console.log("");
+                        console.log("----------------------------------------------------");
+                        console.log(chalk.yellow("     Number of records inserted: ") + result.affectedRows);
+                        console.log("----------------------------------------------------");
+                        console.log("");
+                        empprompt();
+                    });
+                }
+                });
+                       
+        });     
+           
+};
