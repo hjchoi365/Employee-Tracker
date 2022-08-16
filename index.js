@@ -22,3 +22,60 @@ con.connect(function(err) {
     console.log();
     empprompt();
 });
+
+//Start prompts
+function empprompt(){
+    inquirer.prompt([
+    {
+        type :"list",
+        message :"What would you like to do?",
+        name : "choices",
+        choices: ['View all departments',
+                 'View all roles',
+                 'View all Employees',
+                 'Add a department',
+                 'Add a role',
+                 'Add an employee',
+                 'Update an employee role',
+                 'Exit']
+    }
+    ]).then(function(res)
+    {
+        switch (res.choices)
+        {
+            case "View all departments" :
+                viewAllDepartments();
+                break;
+
+            case "View all roles" :
+                viewAllRoles();
+                break;
+
+            case "View all Employees" :
+                viewAllEmployee();
+                break;
+
+            case "Add a department" :
+                addDepartment();
+                break;
+
+            case "Add a role" :
+                addRole();
+                break;
+
+            case "Add an employee" :
+                addEmployee();
+                break;
+
+            case "Update an employee role" :
+                updateEmployeeRole();
+                break;
+
+            case "Exit" :
+                 con.end();
+                 break;
+            
+        }
+
+    });
+};
