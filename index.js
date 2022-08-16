@@ -164,3 +164,82 @@ function addDepartment()
     });
    
 };
+
+//Select department to add role
+
+function selectDepartment()
+{
+    const deptname = [];
+    con.query("select * from department;",
+        function(err, results) {
+            if (err) throw err;
+            for(let i=0;i<results.length;i++)
+            {
+                deptname.push(results[i].name);
+            }
+            
+        })
+    return deptname;
+};
+
+//Add new role
+function addRole()
+{
+    inquirer.prompt([
+        {
+            type :"input",
+            message :"Please enter role title: ",
+            name : "role_title",
+            validate: titleInput => {
+                if (titleInput) {
+                  return true;
+                } else {
+                  console.log('Please enter role title!');
+                  return false;
+                }
+              }
+        },
+        {
+            type :"input",
+            message :"Please enter role salary: ",
+            name : "role_salary",
+            validate: salaryInput => {
+                if (salaryInput) {
+                  return true;
+                } else {
+                  console.log('Please enter role salary!');
+                  return false;
+                }
+              }
+        },
+        {
+            type : "list",
+            message: "Please select department",
+            name :"dept",
+            choices: selectDepartment()
+        }
+    ]).then(function(res){
+        var sq = "select id from department where name = " + mysql.escape(res.dept);
+        con.query(sq, function (err, result) {
+            if (err) throw err;
+            //console.log(result);         
+
+            con.query("INSERT INTO role SET ?",
+            {
+                title :res.role_title,
+                salary :res.role_salary,
+                department_id:result[0].id
+            },
+            function (err, result) {
+                if (err) throw err;
+                console.log("");
+                console.log("----------------------------------------------------");
+                console.log(chalk.yellow("     Number of records inserted: ") + result.affectedRows);
+                console.log("----------------------------------------------------");
+                console.log("");
+                empprompt();
+            });
+    });
+        
+    });
+};
