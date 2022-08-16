@@ -379,3 +379,84 @@ function addEmployee()
         });     
            
 };
+
+
+//retuen all employess first and last name
+
+function selectEmployee() {
+    var empArr = [];
+    con.query("select * from employee;",
+        function (err, results) {
+            if (err) throw err;
+            for (let i = 0; i < results.length; i++) {
+                let empname = results[i].first_name + ' ' + results[i].last_name;
+                empArr.push(empname);
+            }
+
+        })
+    return empArr;
+};
+
+//Update employee role
+function updateEmployeeRole() {
+    var empArr = [];
+    con.query("select * from employee;",
+        function (err, results) {
+            if (err) throw err;
+
+            inquirer.prompt([
+                {
+                    type: "list",
+                    message: "Please select employee: ",
+                    name: "employeename",
+                    choices: function () {
+                        for (let i = 0; i < results.length; i++) {
+                            let empname = results[i].first_name + ' ' + results[i].last_name;
+                            empArr.push(empname);
+                        }
+                        return empArr;
+                    }
+                },
+                {
+                    type: "list",
+                    message: "Please select employee role: ",
+                    name: "employeerole",
+                    choices: selectEmpRole()
+                }
+            ]).then(function (res) {
+                var sq = "select id from employee where CONCAT(first_name,' ',last_name) = " + mysql.escape(res.employeename);
+                con.query(sq, function (err, result) {
+                    if (err) throw err;
+                    var empid = result[0].id;
+                    // console.log(empid);
+                    var sqrole = "select id from role where title = " + mysql.escape(res.employeerole);
+                    con.query(sqrole, function (err, result) {
+                        if (err) throw err;
+                        var roleid = result[0].id;
+                        // console.log(roleid);
+                        con.query("UPDATE employee set ? where ? ",
+                            [
+                                {
+                                    role_id: roleid
+                                },
+                                {
+                                    id: empid
+                                }
+                            ],
+                            function (err, result) {
+                                if (err) throw err;
+                                console.log("");
+                                console.log("----------------------------------------------------");
+                                console.log(chalk.yellow("     Number of records updated: ") + result.affectedRows);
+                                console.log("----------------------------------------------------");
+                                console.log("");
+                                empprompt();
+                            });
+
+                    });
+
+                });
+
+            });
+        });
+};
